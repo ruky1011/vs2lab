@@ -1,5 +1,5 @@
 """
-Simple client server unit test
+Unit tests for client-server functionality
 """
 
 import logging
@@ -12,7 +12,7 @@ from context import lab_logging
 lab_logging.setup(stream_level=logging.INFO)
 
 
-class TestEchoService(unittest.TestCase):
+class TestClientServer(unittest.TestCase):
     """The test"""
     _server = clientserver.Server()  # create single server in class variable
     _server_thread = threading.Thread(target=_server.serve)  # define thread for running server
@@ -25,10 +25,35 @@ class TestEchoService(unittest.TestCase):
         super().setUp()
         self.client = clientserver.Client()  # create new client for each test
 
-    def test_srv_get(self):  # each test_* function is a test
-        """Test simple call"""
-        msg = self.client.call("Hello VS2Lab")
-        self.assertEqual(msg, 'Hello VS2Lab*')
+    def test_srv_get_existing_entry(self):  #schaut ob Hans da ist
+        """Test GET for existing entry"""
+        msg = self.client.call("GET Hans")
+        self.assertEqual(msg, "Hans: 1234")
+    def test_srv_get_existing_entry1(self):  #schaut ob Sabine da ist
+        """Test GET for existing entry"""
+        msg = self.client.call("GET Sabine")
+        self.assertEqual(msg, "Sabine: 151617")
+
+    def test_srv_get_non_existing_entry(self):  #schaut wa spassiert wen User not found
+        """Test GET for non-existing entry"""
+        msg = self.client.call("GET Unknown")
+        self.assertEqual(msg, "Name not in telephonebook")
+
+    def test_srv_invalid_command(self):
+        """Test invalid command"""
+        msg = self.client.call("INVALID")
+        self.assertEqual(msg, "Command not found")
+
+    def test_srv_get_all(self):
+        """Test GETALL"""
+        msg = self.client.call("GETALL")
+        self.assertEqual(msg, "Hans: 1234\nPeter: 5678\nPaul: 91011\nMax: 121314\nSabine: 151617\n")
+
+    # def test_srv_get_all_empty(self):         #setzt das Telefonbuch auf leer - Testreihenfolge nicht immer konstant - deswegen nicht mitausführen stört die anderen Tests
+    #     """Test GETALL with 0 entries"""
+    #     clientserver.telephonebook = {}
+    #     msg = self.client.call("GETALL")
+    #     self.assertEqual(msg, "Telephonebook is empty")
 
     def tearDown(self):
         self.client.close()  # terminate client after each test
@@ -39,5 +64,5 @@ class TestEchoService(unittest.TestCase):
         cls._server_thread.join()  # wait for server thread to terminate
 
 
-if __name__ == '__main__':
+if name == 'main':
     unittest.main()
